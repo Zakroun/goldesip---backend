@@ -3,6 +3,7 @@ const cors = require('../config/cors');
 const connectDB = require('../config/db');
 const transporter = require('../config/mailer');
 const Contact = require('../models/Contact');
+
 const {
     ownerTemplate,
     clientTemplateFR,
@@ -13,22 +14,35 @@ module.exports = async (req, res) => {
     if (cors(req, res)) return;
 
     if (req.method !== 'POST') {
-        return res.status(405).json({ message: 'Method not allowed' });
+        return res.status(405).json({
+            success: false,
+            message: 'Method not allowed',
+        });
     }
 
     try {
         await connectDB();
 
-        let { name, email, phone, service, date, message, language } = req.body;
+        let {
+            name,
+            email,
+            phone,
+            service,
+            date,
+            message,
+            language
+        } = req.body || {};
 
-        name     = name?.trim();
-        email    = email?.trim()?.toLowerCase();
-        phone    = phone?.trim()   || '';
-        service  = service?.trim() || '';
-        date     = date?.trim()    || '';
-        message  = message?.trim() || '';
+        // Clean inputs
+        name = name?.trim();
+        email = email?.trim()?.toLowerCase();
+        phone = phone?.trim() || '';
+        service = service?.trim() || '';
+        date = date?.trim() || '';
+        message = message?.trim() || '';
         language = language === 'en' ? 'en' : 'fr';
 
+        // Validation
         if (!name || !email) {
             return res.status(400).json({
                 success: false,
@@ -44,41 +58,62 @@ module.exports = async (req, res) => {
             });
         }
 
+        // Save to DB
         const contact = await Contact.create({
-            name, email, phone, service, date, message, language,
+            name,
+            email,
+            phone,
+            service,
+            date,
+            message,
+            language,
         });
 
         const data = contact.toObject();
 
-        await transporter.sendMail({
-            from: `"Barber Royale" <${process.env.SMTP_USER}>`,
+        // 📩 Email to owner
+        const ownerMail = {
+            from: `"GoldenSip ☕" <${process.env.SMTP_USER}>`,
             to: process.env.OWNER_EMAIL,
-            subject: '💈 New Reservation — Barber Royale',
+            subject: '☕ New Order / Reservation — GoldenSip',
             html: ownerTemplate(data),
-        });
+        };
 
-        await transporter.sendMail({
-            from: `"Barber Royale" <${process.env.SMTP_USER}>`,
+        // 📩 Email to client
+        const clientMail = {
+            from: `"GoldenSip ☕" <${process.env.SMTP_USER}>`,
             to: email,
-            subject: language === 'en'
-                ? '✅ Booking Confirmation — Barber Royale'
-                : '✅ Confirmation de réservation — Barber Royale',
-            html: language === 'en' ? clientTemplateEN(data) : clientTemplateFR(data),
-        });
+            subject:
+                language === 'en'
+                    ? '✅ Your GoldenSip Request is Confirmed'
+                    : '✅ Votre demande GoldenSip est confirmée',
+            html:
+                language === 'en'
+                    ? clientTemplateEN(data)
+                    : clientTemplateFR(data),
+        };
 
-        res.status(200).json({
+        // 🚀 Send both emails in parallel
+        await Promise.all([
+            transporter.sendMail(ownerMail),
+            transporter.sendMail(clientMail),
+        ]);
+
+        return res.status(200).json({
             success: true,
-            message: 'Message sent successfully',
+            message: 'Request sent successfully ☕',
             data,
         });
 
     } catch (error) {
-        console.error('[Contact API Error]', error);
-        res.status(500).json({
+        console.error('[GoldenSip API Error]', error);
+
+        return res.status(500).json({
             success: false,
-            message: process.env.NODE_ENV === 'development'
-                ? error.message
-                : 'Something went wrong. Please try again.',
+            message:
+                process.env.NODE_ENV === 'development'
+                    ? error.message
+                    : 'Something went wrong. Please try again.',
         });
     }
 };
