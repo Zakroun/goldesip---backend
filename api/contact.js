@@ -27,8 +27,8 @@ module.exports = async (req, res) => {
             name,
             email,
             phone,
-            service,
-            date,
+            guests,
+            time,
             message,
             language
         } = req.body || {};
@@ -37,8 +37,8 @@ module.exports = async (req, res) => {
         name = name?.trim();
         email = email?.trim()?.toLowerCase();
         phone = phone?.trim() || '';
-        service = service?.trim() || '';
-        date = date?.trim() || '';
+        guests = guests ? String(guests).trim() : '';
+        time = time?.trim() || '';
         message = message?.trim() || '';
         language = language === 'en' ? 'en' : 'fr';
 
@@ -63,8 +63,8 @@ module.exports = async (req, res) => {
             name,
             email,
             phone,
-            service,
-            date,
+            guests,
+            time,
             message,
             language,
         });

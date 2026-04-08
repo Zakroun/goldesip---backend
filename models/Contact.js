@@ -17,9 +17,21 @@ const contactSchema = new mongoose.Schema(
             type: String,
             default: '',
         },
+        guests: {
+            type: String,
+            default: '',
+        },
+        time: {
+            type: String,
+            default: '',
+        },
         message: {
             type: String,
             default: '',
+        },
+        language: {
+            type: String,
+            default: 'en',
         },
     },
     { timestamps: true }
