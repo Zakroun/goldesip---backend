@@ -204,7 +204,7 @@ const ownerTemplate = (data) => {
         New Booking Received
       </h2>
       <p style="margin:0 0 24px;font-family:Arial,sans-serif;font-size:13px;
-                 color:${T.mutedText};line-height:1.6;">
+        color:${T.mutedText};line-height:1.6;">
         A customer just submitted a reservation through your website.
       </p>
 
@@ -213,7 +213,6 @@ const ownerTemplate = (data) => {
         ${infoRow('👤', 'Name', data.name)}
         ${infoRow('✉️', 'Email', data.email)}
         ${infoRow('📞', 'Phone', data.phone)}
-        ${infoRow('🌐', 'Language', data.language === 'fr' ? 'French' : 'English')}
       `)}
 
       ${sectionHeading('Booking Details')}
